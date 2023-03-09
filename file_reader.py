@@ -28,6 +28,7 @@ def file_reader(file):
                 tmp.append((int(elements[i]), int(merged_value[i])))
             final_list.append(tmp)
             tmp = list()
+        merged_poids = [int(x) for x in merged_poids]
     print(f'n = {n} | m = {m}')
     print(f'poids = {merged_poids}')
     print(f'value = {merged_value}')

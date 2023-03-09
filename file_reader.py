@@ -34,4 +34,4 @@ def file_reader(file):
     print(f'final = {final_list}')
 
 
-file_reader('/Users/Admin/Downloads/100M5_11.txt')
+file_reader('Instances/100M5_11.txt')

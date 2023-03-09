@@ -118,16 +118,19 @@ def local_search(values,selected_items,bags,rest_bags):
         bags (list): Liste des poids de chacun des sacs
         rest_bags (list): Liste du reste de poids de chacun des sacs
     """
-    most_full = min(rest_bags)
-    most_full_index = rest_bags.index(most_full)
-    copy = bags.copy()
-    bigger_object = max(selected_items[most_full_index], key=itemgetter(0))
-    for i in range(len(values)):
-        if bigger_object in values[i]:
-            values[i].remove(bigger_object) #On supprime l'item le plus gros pour ne plus qu'il soit choisi
-    indexes = simple_heuristic(bags, values)
-    rest_of_bags = bags
-    beautier_print(values, indexes, copy, rest_of_bags)
+    for i in range(10):
+        most_full = min(rest_bags)
+        print(most_full)
+        most_full_index = rest_bags.index(most_full)
+        copy = bags.copy()
+        bigger_object = max(selected_items[most_full_index], key=itemgetter(0))
+        print(bigger_object)
+        for i in range(len(values)):
+            if bigger_object in values[i]:
+                values[i].remove(bigger_object) #On supprime l'item le plus gros pour ne plus qu'il soit choisi
+        indexes = simple_heuristic(bags, values)
+        rest_of_bags = bags
+        beautier_print(values, indexes, copy, rest_of_bags)
 
 def simple_heuristic(bags,values):
     """Calcul de l'heuristique:
@@ -178,4 +181,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-    

@@ -21,8 +21,7 @@ def file_reader(file):
         merged_poids = list(itertools.chain.from_iterable(poids))
         merged_value = list(itertools.chain.from_iterable(value))
         flatten_backpack_poids = list(itertools.chain.from_iterable(backpack_poids))
-        chunks = [flatten_backpack_poids[x:x+n]
-                  for x in range(0, len(flatten_backpack_poids), 100)]
+        chunks = [flatten_backpack_poids[x:x+n] for x in range(0, len(flatten_backpack_poids), 100)]
         for elements in chunks:
             for i in range(len(elements)):
                 tmp.append((int(elements[i]), int(merged_value[i])))

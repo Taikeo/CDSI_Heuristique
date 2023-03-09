@@ -25,7 +25,7 @@ def file_reader(file):
                   for x in range(0, len(flatten_backpack_poids), 100)]
         for elements in chunks:
             for i in range(len(elements)):
-                tmp.append((elements[i], merged_value[i]))
+                tmp.append((int(elements[i]), int(merged_value[i])))
             final_list.append(tmp)
             tmp = list()
     print(f'n = {n} | m = {m}')

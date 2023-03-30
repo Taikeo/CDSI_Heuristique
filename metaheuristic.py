@@ -71,7 +71,7 @@ def initialisation(liste,bags,population):
         tmp_bags = bags.copy()
     return solutions
     
-def get_elements(indexes_l,liste,bags):
+def get_elements(indexes_l,liste):
     item = list()
     items = list()
     items_per_bag = list()
@@ -98,21 +98,22 @@ def get_values(items_per_bag):
 
 def get_bests(nb_of_best,values):
     values.sort(key = lambda x: x[1], reverse = True)
-    return values
+    return values[:nb_of_best]
+
+def indexes_to_best(best_indexes,liste):
+    return 0
+
+def mutation(bests,list_final):
+    return 0
 
 def main():
     liste, poids = file_reader('Instances/100M5_1.txt')
     #print(liste, poids)
     indexes_l = initialisation(liste, poids,100)
-    items_per_bag = get_elements(indexes_l,liste,poids)
+    items_per_bag = get_elements(indexes_l,liste)
     total_l,values = get_values(items_per_bag)
-    get_bests(10,values)
-    liste = [x for x in range(1,11)]
-    choix = [x for x in range(1, 11)]
-    c1, c2 = random.randint(1, 100), random.randint(1, 100)
-    chiffre, selected = random.choice(liste), random.choice(choix)
-    choix[choix.index(selected)] = chiffre if c1 == 1 and c2 >=50 else selected
-
+    best_indexes = get_bests(10,values)
+    print(best_indexes)
 
 if __name__ == '__main__':
     main()

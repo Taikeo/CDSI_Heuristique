@@ -1,0 +1,13 @@
+{
+	"folders": [
+		{
+			"name": "CDSI_Heuristique",
+			"path": "."
+		},
+		{
+			"name": "Instances-20230308",
+			"path": "../../../Downloads/Instances-20230308"
+		}
+	],
+	"settings": {}
+}

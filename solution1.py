@@ -153,6 +153,8 @@ def simple_heuristic(bags,values):
             ss += elements[i][1]
         sum_of_tuples.append((s, ss))
     sum_of_tuples = [tuple(map(sum, zip(*i))) for i in zip(*values)] #Ligne pour additionner chacun des élement du même indice dans la liste de valeurs
+    print("\n================================")
+    print(sum_of_tuples)
     while 0 not in bags:
         if len(sum_of_tuples) == 0:
             break

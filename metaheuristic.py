@@ -1,5 +1,6 @@
 import itertools
 import random
+from operator import itemgetter
 
 def file_reader(file):
     """Interprétation des fichiers pour les ajouter à notre structure de donnée
@@ -50,38 +51,67 @@ def initialisation(liste,bags,population):
     indexes = list()
     solution = list()
     solutions = list()
-    tmp = liste[0].copy()
+    tmp_bags = bags.copy()
     for _ in range(population):
-        while 0 not in bags or len(liste[0])==0:
-            if len(liste[0]) > 1:
-                random = randomized(len(liste[0])-1)
-            else:
-                random = randomized(0)
-            
-            if len(liste[0]) == 0:
-                break
+        t1 = randomized(25,10)
+        t2 = randomized(25,10)
+        for _ in range(min(t1,t2),max(t1,t2)):
+            random = randomized(len(liste[0])-1)
             elements = list(zip(*liste))[random]
-            for it,element in enumerate(elements):
-                if element[0] <= bags[it]:
+            for it in range (len(elements)):
+                if elements[it][0] <= tmp_bags[it]:
                     indexes.append(random)
-                    bags[it] -= element[0]
-                if element in liste[0]:
-                    list[0].pop(random)
+                    tmp_bags[it] -= elements[it][0]
         for numbers in set(indexes):
             if indexes.count(numbers) == 5:
                 solution.append(numbers)
-        indexes = list()
         solutions.append(solution)
         solution = list()
-    for element in solutions:
-        print(element)
+        indexes = list()
+        tmp_bags = bags.copy()
     return solutions
     
+def get_elements(indexes_l,liste,bags):
+    item = list()
+    items = list()
+    items_per_bag = list()
+    for indexes in indexes_l:
+        for index in indexes:
+            item.append(list(list(zip(*liste))[index]))
+        items.append(item)
+        item = list()
+    for i in range(len(items)):
+        items_per_bag.append([list(x) for x in zip(*items[i])])
+    return items_per_bag
+            
+def get_values(items_per_bag):
+    liste, values = list(),list()
+    sum_items_bag = 0
+    for it,items in enumerate(items_per_bag):
+        for item in items:
+            for tuples in item:
+                sum_items_bag += tuples[1]
+        liste.append((items,sum_items_bag))
+        values.append((it,sum_items_bag))
+        sum_items_bag = 0
+    return liste,values
+
+def get_bests(nb_of_best,values):
+    values.sort(key = lambda x: x[1], reverse = True)
+    return values
 
 def main():
     liste, poids = file_reader('Instances/100M5_1.txt')
     #print(liste, poids)
-    print(initialisation(liste, poids,10))
+    indexes_l = initialisation(liste, poids,100)
+    items_per_bag = get_elements(indexes_l,liste,poids)
+    total_l,values = get_values(items_per_bag)
+    get_bests(10,values)
+    liste = [x for x in range(1,11)]
+    choix = [x for x in range(1, 11)]
+    c1, c2 = random.randint(1, 100), random.randint(1, 100)
+    chiffre, selected = random.choice(liste), random.choice(choix)
+    choix[choix.index(selected)] = chiffre if c1 == 1 and c2 >=50 else selected
 
 
 if __name__ == '__main__':

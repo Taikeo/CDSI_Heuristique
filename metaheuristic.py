@@ -130,16 +130,13 @@ def weights_evaluation(bests_indexes,bags,liste):
         tmp = list()
     sums = [sum(lists) for lists in to_be_evaluated]
     boolean = [True if sums[i] <= bags[i] else False for i in range(len(sums))]
-    #print(boolean,bags)
-    b = False if False in boolean else True
-    return b
+    return False if False in boolean else True
 
 def get_single_value(indexes,value):
     return sum([int(value[element]) for element in indexes])
         
 def value_evaluation(initial,rival,value):
     value1, value2 = get_single_value(initial, value), get_single_value(rival, value)
-    #print(value1,value2)
     return value1 if value1 >= value2 else value2
 
 def croisement(best_indexes,bags,liste,value):
@@ -159,6 +156,9 @@ def croisement(best_indexes,bags,liste,value):
                 accept.append(element)
     for child in accept:
         print(get_valuesv3(child,value))
+    print("==")
+    for parent in best_indexes:
+        print(get_valuesv3(parent,value))
     return accept
                 
 
@@ -173,10 +173,6 @@ def main():
     bests_indexes_value = get_bests(10,values_indexes)
     best_indexes = get_indexes_from_best(bests_indexes_value)
     croisement(best_indexes,poids_sac,liste,value)
-    #boolean = weights_evaluation(best_indexes[0], poids_sac, liste)
-    #value_evaluation(best_indexes[0], best_indexes[1], value)
-    #print(boolean)
-    #print(best_indexes)
 
 
 if __name__ == '__main__':

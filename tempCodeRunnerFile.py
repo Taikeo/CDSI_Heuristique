@@ -1,1 +1,1 @@
-remove
+print

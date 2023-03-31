@@ -175,7 +175,7 @@ def simple_heuristic(bags,values):
 
 
 def main():
-    liste, poids = file_reader('Instances/500M30_21.txt')
+    liste, poids = file_reader('Instances/100M5_1.txt')
     tmp,valeur = poids.copy(),liste.copy()
     indexes = simple_heuristic(poids, liste)
     selected_values = get_indexes(liste, indexes,tmp)

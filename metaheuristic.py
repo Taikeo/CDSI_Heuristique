@@ -41,7 +41,7 @@ def file_reader(file):
     #print(f'poids = {merged_poids}')
     #print(f'value = {merged_value}')
     #print(f'final = {final_list}')
-    return final_list,merged_poids
+    return final_list,merged_poids,merged_value
 
 
 def randomized(maxi,mini=0):
@@ -70,7 +70,16 @@ def initialisation(liste,bags,population):
         indexes = list()
         tmp_bags = bags.copy()
     return solutions
-    
+
+def get_valuesv2(indexes,value):
+    l,liste = list(),list()
+    for index in indexes:
+        for i in index:
+            l.append(int(value[i]))
+        liste.append(l)
+        l.clear()
+    return [(indexes[liste.index(x)], sum(x)) for x in liste]
+
 def get_elements(indexes_l,liste):
     item = list()
     items = list()
@@ -107,13 +116,15 @@ def mutation(bests,list_final):
     return 0
 
 def main():
-    liste, poids = file_reader('Instances/100M5_1.txt')
+    liste, poids, value = file_reader('Instances/100M5_1.txt')
     #print(liste, poids)
     indexes_l = initialisation(liste, poids,100)
-    items_per_bag = get_elements(indexes_l,liste)
-    total_l,values = get_values(items_per_bag)
-    best_indexes = get_bests(10,values)
-    print(best_indexes)
+    values_indexes = get_valuesv2(indexes_l, value)
+    #items_per_bag = get_elements(indexes_l,liste)
+    #print(items_per_bag)
+    #total_l,values = get_values(items_per_bag)
+    #best_indexes = get_bests(10,values)
+    #print(best_indexes)
 
 if __name__ == '__main__':
     main()

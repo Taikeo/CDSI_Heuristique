@@ -87,7 +87,8 @@ def get_valuesv3(index, value):
     for i in index:
         l.append(int(value[i]))
     liste.append(l)
-    return [ (index,sum(x)) for x in liste]
+    tmp = [(index,sum(x)) for x in liste]
+    return list(itertools.chain.from_iterable(tmp))
 
 def get_elements(indexes_l,liste):
     item = list()
@@ -151,19 +152,59 @@ def croisement(best_indexes,bags,liste,value):
     for elements in childs:
         for element in elements:
             b = weights_evaluation(element, bags, liste)
+            #print(element)
             if b:
                 cpt += 1
                 accept.append(element)
-    for child in accept:
-        print(get_valuesv3(child,value))
-    print("==")
-    for parent in best_indexes:
-        print(get_valuesv3(parent,value))
+    #for child in accept:
+    #    print(get_valuesv3(child,value))
+    #print("==")
+    #for parent in best_indexes:
+    #    print(get_valuesv3(parent,value))
     return accept
-                
 
-def mutation(bests,list_final):
-    return 0
+
+
+def lists(list1,list2):
+    return list1,list2
+
+def compare_list_of_list(list1,list2,value,bests):
+    p_list1 = list()
+    p_list2 = list()
+    #for element in list1:
+    #    print(get_valuesv3(element,value))
+    for element in list1:
+        p_list1.append(get_valuesv3(element,value))
+    mins = min(p_list1,key = lambda x: x[1])
+    for element in list2:
+        element = get_valuesv3(element,value)
+        if element[1] >= mins[1]:
+            p_list2.append(element)
+    copied = p_list2.copy()
+    #print(max(copied, key = lambda x: x[1])[1])
+    p1_p2_list = list(itertools.chain.from_iterable(lists(p_list1,p_list2)))
+    #for element in get_bests(bests,p1_p2_list):
+    #    print(element)
+    indexes = [x[0] for x in get_bests(bests,p1_p2_list)]
+    return indexes
+
+
+def mutation(best,list_final,bags,mutation_chance=1,changing_chance=50):
+    copied = best.copy()
+    #print(best)
+    l = list()
+    for i in range(len(best)):
+        element = best[i].copy()
+        t1,t2, c1,c2 = random.choice(element), random.choice(list_final[0]), random.randint(1,100), random.randint(1,100)
+        element[element.index(t1)] = list_final[0].index(t2)
+        #print(best)
+        #print(weights_evaluation(element,bags,list_final))
+        if weights_evaluation(element,bags,list_final) == True:
+            if c1 <= mutation_chance and c2 <= changing_chance:
+                l.append(element)
+        else:
+            l.append(best[i])
+    return l
 
 def main():
     liste, copy,poids_sac, value = file_reader('Instances/100M5_1.txt')
@@ -172,8 +213,14 @@ def main():
     values_indexes = get_valuesv2(indexes_l, value)
     bests_indexes_value = get_bests(10,values_indexes)
     best_indexes = get_indexes_from_best(bests_indexes_value)
-    croisement(best_indexes,poids_sac,liste,value)
-
+    childs = croisement(best_indexes,poids_sac,liste,value)
+    new_bests=compare_list_of_list(best_indexes,childs,value,10)
+    new_pop= mutation(new_bests,liste,poids_sac,100,100)
+    #childs = croisement(new_pop,poids_sac,liste,value)
+    #new_bests = compare_list_of_list(new_pop,childs,value,10)
+    #new_pop = mutation(new_bests,liste,poids_sac,1,50)
+    for element in new_pop:
+        print(element)
 
 if __name__ == '__main__':
     main()

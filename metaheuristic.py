@@ -57,7 +57,7 @@ def initialisation(listee,bags,population):
         list: Liste des populations
     """
     pp = list()
-    baggy = [0 for x in range(len(bags))] #Copie des listes
+    baggy = [x for x in range(len(bags))] #Copie des listes
     solution,solutions,indexes = list(),list(),list()
     for _ in range(population):
         while True:

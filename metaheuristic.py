@@ -240,14 +240,14 @@ def mutation(best,list_final,bags,mutation_chance=1,changing_chance=50):
             l.append(best[i])
     return l
 
-def output(liste,length):
+def output(liste,length,max_score):
     """Créer le fichier en 1 ligne de 0 et 1 
 
     Args:
         liste (list): liste d'index de la meilleur population
         length (int): Nombre de valeur en total
     """
-    output = ""
+    output = str(max_score)+""
     with open('output.txt', 'w') as f:
         for i in range(length):
             if i in liste:
@@ -303,7 +303,7 @@ def main():
     
     ##########
     
-    output(new_pop[0],len(value))
+    output(new_pop[0],len(value),get_single_value(new_pop[0],value))
     print(new_pop[0],get_single_value(new_pop[0],value))
 
 if __name__ == '__main__':

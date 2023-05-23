@@ -248,14 +248,14 @@ def output(liste,length,max_score):
         liste (list): liste d'index de la meilleur population
         length (int): Nombre de valeur en total
     """
-    output = str(max_score)+""
+    output = ""
     with open('output.txt', 'w') as f:
         for i in range(length):
             if i in liste:
                 output+="1"
             else:
                 output+="0"
-        f.write(' '.join(output))
+        f.write(str(max_score)+' '.join(output))
         
 def main():
     
@@ -264,7 +264,7 @@ def main():
     
     nombre_population = 100
     nombre_best_population = 10
-    nombre_iteration = 200000
+    nombre_iteration = 200000D
     probabilité_mutation = 1
     probabilité_changement = 50
     

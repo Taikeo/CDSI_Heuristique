@@ -6,15 +6,15 @@ defmodule Metaheuristique do
   @doc """
   Build a list from the input text file
  
-  ## Examples
+  ## Example
  
       iex> Metaheuristique.build_list("100M5_1.txt")
       [100, 5, 504]
  
   """
   def build_list() do
-    if {:ok, text} = File.read("100M5_1.txt") do
-      String.replace(text, "\n", "")
+    if {:ok, text} = File.read("Instances/500M30_21.txt") do
+      String.replace(text, ["\n", "\r"], "")
       |> String.replace(~r/ +/, " ")
       |> String.trim()
       |> String.split(" ")
@@ -23,30 +23,11 @@ defmodule Metaheuristique do
       {:error, "Erreur lors de la lecture du fichier"}
     end
   end
- 
-  @doc """
-  With given lists of object_values and lists_of_weights for each bag build n list of tuples {values, weight} where n is the number of bags
-  For example:
-    - Item 1 in BAG 1 have a value of 89 and a weight of 98
-    - Item 1 in Bag 2 have a value of 89 and a weight of 78
-    Will build [[{89, 98}], [{89, 78}]]
- 
-  ## Examples
- 
-      iex> Metaheuristique.build_tuples_list([98, 78], [89])
-      [[{89, 98}], [{89, 78}]]
- 
-  """
-  def build_tuples_list(%{lists_of_weights: lists_of_weights, objects_values: objects_values}) do
-    Enum.map(lists_of_weights, fn list_of_weights ->
-      Enum.zip(objects_values, list_of_weights)
-    end)
-  end
- 
+
   @doc """
   Get all data from the list build from the text file
  
-  ## Examples
+  ## Example
  
       iex> Metaheuristique.get_all_data([[1, 2, 3, ...])
       %{
@@ -73,112 +54,175 @@ defmodule Metaheuristique do
     }
   end
  
-  def first_solution(tuples_lists, data) do
-    filled_bags = fill_all_bags(tuples_lists, data)
-    maximum_number_of_items = get_max_number_of_items(filled_bags)
-    optimal_bags = get_optimal_bags(maximum_number_of_items, filled_bags)
+  @doc """
+  With a given list of object_values and lists_of_weights for each bag build n list of tuples {values, weight} where n is the number of bags
+  For example:
+    - Item 1 in BAG 1 have a value of 89 and a weight of 98
+    - Item 1 in Bag 2 have a value of 89 and a weight of 78
+    Will build [[{89, 98}], [{89, 78}]]
  
-    build_data_map(optimal_bags)
+  ## Example
+ 
+      iex> Metaheuristique.build_tuples_list([98, 78], [89])
+      [[{89, 98}], [{89, 78}]]
+ 
+  """
+  def build_tuples_list(%{lists_of_weights: lists_of_weights, objects_values: objects_values}) do
+    Enum.map(lists_of_weights, fn list_of_weights ->
+      Enum.zip(objects_values, list_of_weights)
+    end)
   end
  
-  def fill_all_bags(tuples_lists, %{bags_capacities: bags_capacities}) do
-    tuples_lists
-    |> Enum.with_index(fn elem, index -> {index, elem} end)
-    |> Enum.map(fn {index, tuples_list} ->
-        Enum.reduce_while(tuples_list, {0, []}, fn {value, weight}, acc ->
-          if weight + elem(acc, 0) <= Enum.at(bags_capacities, index) do
-            {:cont, {weight + elem(acc, 0), elem(acc, 1) ++ [{value, weight}]}}
-          else
-            {:halt, acc}
-          end
+  @doc """
+  With a given list containing n list of tuples {values, weight} where n is the number of bags get the ratio value / weight for each item in each bag
+  For example:
+    - Item 1 in BAG 1 = {8, 10} gives a ratio of 0.8
+    - Item 1 in Bag 2 = {100, 10} gives a ratio of 10
+ 
+  ## Example
+ 
+      iex> Metaheuristique.get_ratio_by_items_in_bag([[{100, 87}, {23, 45}], [...]])
+      [[1.14, 0.5], [...]]
+ 
+  """
+  def get_ratio_by_items_in_bag(tuples_lists) do
+    Enum.map(tuples_lists, fn list_tuples ->
+      Enum.map(list_tuples, fn tuple ->
+        elem(tuple, 0) / elem(tuple, 1)
+      end)
+    end)
+  end
+ 
+  @doc """
+  With a given list containing lists (one list per bag) of ratio values find the best ratio value/weight for each items.
+  Then sort each ratio and build a new sorted index list (first index are the best ratio).
+  For example:
+    - Item 1 in BAG 1 ratio = 0.8
+    - Item 1 in Bag 2 ratio = 10
+    Gives a ratio of 0.8 + 10 = 10.8 that is better than a Ratio2 of 8.7
+    So the list will be [Ratio1 Index, Ratio2 Index, ...]
+ 
+  ## Example
+ 
+      iex> Metaheuristique.get_best_items_indexes([[1.14, 0.5], [...]])
+      [1, 2, ...]
+ 
+  """
+  def get_best_items_indexes(ratio_lists) do
+    ratio_lists
+    |> List.zip()
+    |> Enum.map(fn tuple -> Tuple.sum(tuple) end)
+    |> Enum.with_index()
+    |> Enum.sort(:desc)
+    |> Enum.map(fn tuple ->
+      elem(tuple, 1)
+    end)
+  end
+ 
+  @doc """
+  Fill all the bags based on the best ratio list. 
+  The first items that we try to insert are the items with best ratios.
+  If a bag can't accept the new item we try to insert the next one until there is no item left.
+  Final result is a tuple {[indexes], [weights]} 
+  This list contains all the indexes of the items we took & the final weights of each bags.
+ 
+  ## Example
+ 
+      iex> Metaheuristique.fill_all_bags([89, 23, 92], data, tuples_lists)
+      {[89, 92, 43, 87, ...], [11222, 13131, 11538, 10136, 11733]}
+ 
+  """
+  def fill_all_bags(index_list, %{bags_capacities: bags_capacities, number_of_bags: number_of_bags}, tuples_lists, ban_list \\ []) do
+      Enum.reduce(index_list, {[], []}, fn index, {indexes, weights} = acc ->
+        Enum.map(0..number_of_bags-1, fn bag -> 
+          weight = elem(Enum.at(Enum.at(tuples_lists, bag), index), 1) + Enum.at(weights, bag, 0)
+          if weight <= Enum.at(bags_capacities, bag), do: weight, else: false
         end)
+        |> fit_in_bags?(index, indexes, acc, ban_list)
       end)
   end
+
+  @doc """
+  Based on the tuple of final bags weights and indexes we build a map with the final infos.
  
-  def get_max_number_of_items(filled_bags) do
-    Enum.map(filled_bags, fn {_weight, tuple_list} ->
-      length(tuple_list)
-    end)
-    |> Enum.min()
+  ## Example
+ 
+      iex> Metaheuristique.calculate_value({[89, ...], [1982, ...]} data)
+      %{
+        bags_weight: [11222, 13131, 11538, 10136, 11733],
+        items_indexes: [89, 92, 43, 87, ...], 
+        total_value: 20158
+      }
+ 
+  """
+  def calculate_value({indexes, weigths}, %{objects_values: values}) do
+    total_value = Enum.map(indexes, fn index -> Enum.at(values, index) end) |> Enum.sum
+    %{bags_weight: weigths, item_indexes: indexes, total_value: total_value}
+  end
+
+  @doc """
+  Based on the precedent solution, banned items, and several other parameters.
+  Build the ban list and then build a new solution with the items that are not banned.
+  All solutions are kept in memory. 
+  When the desired iteration number is reached find the best solution over the list of solutions and return it.
+ 
+  ## Examples
+ 
+      iex> Metaheuristique.taboo_search()
+      %{
+        bags_weight: [11222, 13131, 11538, 10136, 11733],
+        items_indexes: [89, 92, 43, 87, ...], 
+        total_value: 20158
+      }
+ 
+  """
+  def taboo_search(precedent_solutions, _, _, _, {current, it_number}, _, _, _) when current == it_number do
+    best_solution =
+			Enum.map(precedent_solutions, fn solution -> 
+				solution.total_value
+			end)
+			|> Enum.with_index()
+			|> Enum.sort(:desc)
+			|> Enum.at(0)
+
+		Enum.at(precedent_solutions, elem(best_solution, 1))
   end
  
-  def get_optimal_bags(max_number_of_items, filled_bags) do
-    Enum.map(filled_bags, fn {_weight, tuple_list} ->
-      Enum.take(tuple_list, max_number_of_items)
-    end)
+  def taboo_search(precedent_solutions, tuples_lists, data, precedent_ban_list, {current_iteration, iteration_nb}, number_of_ban, max_ban_nb, sorted_index_by_ratio) do
+    new_ban_list = get_ban_list(Enum.at(precedent_solutions, 0), precedent_ban_list, number_of_ban, max_ban_nb)
+
+		new_solution =
+			sorted_index_by_ratio
+			|> fill_all_bags(data, tuples_lists, new_ban_list)
+			|> calculate_value(data)
+
+		taboo_search([new_solution] ++ precedent_solutions, tuples_lists, data, new_ban_list, {current_iteration + 1, iteration_nb}, number_of_ban, max_ban_nb, sorted_index_by_ratio)
   end
  
-  def build_data_map(full_bags) do
-    Enum.map(full_bags, fn full_bag ->
-      Enum.reduce(full_bag, %{value: 0, weight: 0}, fn {value, weight}, acc ->
-        %{value: value + Map.get(acc, :value), weight: weight + Map.get(acc, :weight)}
-      end)
-      |> Map.put(:items, full_bag)
-    end)
+  defp get_ban_list(%{item_indexes: precedent_indexes}, banned_indexes, nb_of_ban, max_ban_nb) do
+    new_ban_indexes = Enum.take_random(precedent_indexes, nb_of_ban)
+
+		Enum.take(new_ban_indexes ++ banned_indexes, max_ban_nb)
   end
+
+  defp fit_in_bags?(weights, index, indexes, acc, ban_list), 
+    do: if Enum.member?(weights, false) or Enum.member?(ban_list, index), do: acc, else: {indexes ++ [index], weights}
  
-  def main() do
-    iteration_number = 10
+  def main(iteration_nb \\ 100, number_of_ban \\ 10, max_ban_nb \\ 20) do
     data = get_all_data()
+ 
     tuples_lists = build_tuples_list(data)
-    first_solution = first_solution(tuples_lists, data)
-    #|> IO.inspect(charlists: :as_lists)
- 
-    taboo_search(first_solution, tuples_lists, data, [], {0, iteration_number})
-    1
-  end
- 
-  def taboo_search(precedent_solution, tuples_lists, data, precedent_ban_list, iteration_nb, number_of_ban \\ 10)
- 
-  def taboo_search(precedent_solution, _, _, _, {current, it_number}, _) when current == it_number do
-    precedent_solution
-  end
- 
-  def taboo_search(precedent_solution, tuples_lists, data, precedent_ban_list, iteration_nb, number_of_ban) do
-    new_ban_list = get_ban_list(precedent_solution, precedent_ban_list, number_of_ban)
- 
-    new_tuples_lists =
-      tuples_lists
-      |> Enum.with_index(fn element, index -> {index, element} end)
-      |> Enum.map(fn {index, tuples_list} ->
-        tuples_list -- Enum.at(new_ban_list, index)
-      end)
- 
-    new_solution = first_solution(new_tuples_lists, data)
- 
-    IO.inspect(Map.get(Enum.at(precedent_solution, 0), :value), label: "VALUE 1")
-    IO.inspect(Map.get(Enum.at(new_solution, 0), :value), label: "VALUE 2")
- 
-    if Map.get(Enum.at(precedent_solution, 0), :value) < Map.get(Enum.at(new_solution, 0), :value) do
-      taboo_search(new_solution, tuples_lists, data, new_ban_list, {elem(iteration_nb, 0) + 1, elem(iteration_nb, 1)}, number_of_ban)
-    else
-      taboo_search(precedent_solution, tuples_lists, data, new_ban_list, {elem(iteration_nb, 0) + 1, elem(iteration_nb, 1)}, number_of_ban)
-    end
-  end
- 
-  def get_ban_list(precedent_solution, precedent_ban_list, number_of_ban) do
-    bags_size = length(Map.get(Enum.at(precedent_solution, 0), :items))
-    taboo_ban_index = Enum.take_random(0..bags_size - 1, number_of_ban)
- 
-    new_banned_items =
-      precedent_solution
-      |> Enum.map(fn %{items: items} ->
-        items
-        |> Stream.with_index()
-        |> Stream.reject(fn {_item, index} -> index in taboo_ban_index end)
-        |> Enum.map(&elem(&1, 0))
-      end)
- 
-    if precedent_ban_list == [] do
-      new_banned_items
-    else
-      precedent_ban_list
-      |> Enum.zip(new_banned_items)
-      |> Enum.map(fn zipped ->
-        zipped
-        |> Tuple.to_list()
-        |> List.flatten()
-      end)
-    end
+
+    sorted_index_by_ratio =
+			tuples_lists
+			|> get_ratio_by_items_in_bag()
+			|> get_best_items_indexes()
+
+		first_solution =
+			sorted_index_by_ratio
+			|> fill_all_bags(data, tuples_lists)
+			|> calculate_value(data)
+
+		taboo_search([first_solution], tuples_lists, data, [], {0, iteration_nb}, number_of_ban, max_ban_nb, sorted_index_by_ratio)
   end
 end

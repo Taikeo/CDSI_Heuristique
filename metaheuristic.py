@@ -1,5 +1,6 @@
 import itertools
 import random
+import time
 
 def file_reader(file):
     """Interprétation des fichiers pour les ajouter à notre structure de donnée
@@ -263,7 +264,7 @@ def main():
     
     nombre_population = 100
     nombre_best_population = 10
-    nombre_iteration = 1000
+    nombre_iteration = 200000
     probabilité_mutation = 1
     probabilité_changement = 50
     
@@ -307,4 +308,6 @@ def main():
     print(new_pop[0],get_single_value(new_pop[0],value))
 
 if __name__ == '__main__':
+    start_time = time.time()
     main()
+    print("--- %s seconds ---" % (time.time() - start_time))

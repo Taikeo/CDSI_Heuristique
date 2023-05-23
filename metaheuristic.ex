@@ -13,7 +13,7 @@ defmodule Metaheuristique do
  
   """
   def build_list() do
-    if {:ok, text} = File.read("Instances/500M30_21.txt") do
+    if {:ok, text} = File.read("Instances/100M5_1.txt") do
       String.replace(text, ["\n", "\r"], "")
       |> String.replace(~r/ +/, " ")
       |> String.trim()
@@ -198,6 +198,14 @@ defmodule Metaheuristique do
 
 		taboo_search([new_solution] ++ precedent_solutions, tuples_lists, data, new_ban_list, {current_iteration + 1, iteration_nb}, number_of_ban, max_ban_nb, sorted_index_by_ratio)
   end
+
+  def write_in_text_file(%{item_indexes: item_indexes} = result, nb_of_items) do
+    items_to_take = List.duplicate(0, nb_of_items)
+    index_list = Enum.reduce(item_indexes, items_to_take, &List.replace_at(&2, &1, 1)) |> Enum.join(" ")
+    
+    File.write("elixir_output.txt", index_list)
+    result
+  end
  
   defp get_ban_list(%{item_indexes: precedent_indexes}, banned_indexes, nb_of_ban, max_ban_nb) do
     new_ban_indexes = Enum.take_random(precedent_indexes, nb_of_ban)
@@ -223,6 +231,8 @@ defmodule Metaheuristique do
 			|> fill_all_bags(data, tuples_lists)
 			|> calculate_value(data)
 
-		taboo_search([first_solution], tuples_lists, data, [], {0, iteration_nb}, number_of_ban, max_ban_nb, sorted_index_by_ratio)
+    [first_solution]
+		|> taboo_search(tuples_lists, data, [], {0, iteration_nb}, number_of_ban, max_ban_nb, sorted_index_by_ratio)
+    |> write_in_text_file(data.number_of_objects)
   end
 end

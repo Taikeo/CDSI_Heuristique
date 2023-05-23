@@ -264,7 +264,7 @@ def main():
     
     nombre_population = 100
     nombre_best_population = 10
-    nombre_iteration = 200000D
+    nombre_iteration = 200000
     probabilité_mutation = 1
     probabilité_changement = 50
     

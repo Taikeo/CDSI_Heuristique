@@ -29,4 +29,7 @@ Pour exécuter les fichiers .ex:
     - "Metaheuristique.main" pour le fichier "metaheuristic.ex"
 5. Il est possible de faire varier le nombre d'itération, le nombre d'item bannis 
 ainsi que le nombre de ban simultané maximum à l'aide des trois premiers paramètres de la fonction.
-Par défaut 100, 10 et 20
+Le quatrième paramètre permet de modifier l'instance utilisé.
+Par défaut 100, 10, 20 et "100M5_1"
+
+Exemple d'éxécution pour un fichier avec paramètres: "Metaheuristique.main(100, 10, 20, "100M5_1")"

@@ -12,8 +12,8 @@ defmodule Metaheuristique do
       [100, 5, 504]
  
   """
-  def build_list() do
-    if {:ok, text} = File.read("Instances/100M5_1.txt") do
+  def build_list(instance) do
+    if {:ok, text} = File.read("Instances/#{instance}.txt") do
       String.replace(text, ["\n", "\r"], "")
       |> String.replace(~r/ +/, " ")
       |> String.trim()
@@ -39,8 +39,8 @@ defmodule Metaheuristique do
       }
  
   """
-  def get_all_data() do
-    [number_of_objects, number_of_bags | rest] = build_list()
+  def get_all_data(instance) do
+    [number_of_objects, number_of_bags | rest] = build_list(instance)
     {objects_values, rest} = Enum.split(rest, number_of_objects)
     {bags_capacities, rest} = Enum.split(rest, number_of_bags)
     lists_of_weights = Enum.chunk_every(rest, number_of_objects)
@@ -199,11 +199,11 @@ defmodule Metaheuristique do
 		taboo_search([new_solution] ++ precedent_solutions, tuples_lists, data, new_ban_list, {current_iteration + 1, iteration_nb}, number_of_ban, max_ban_nb, sorted_index_by_ratio)
   end
 
-  def write_in_text_file(%{item_indexes: item_indexes} = result, nb_of_items) do
+  def write_in_text_file(%{item_indexes: item_indexes} = result, nb_of_items, instance) do
     items_to_take = List.duplicate(0, nb_of_items)
     index_list = Enum.reduce(item_indexes, items_to_take, &List.replace_at(&2, &1, 1)) |> Enum.join(" ")
     
-    File.write("elixir_output.txt", index_list)
+    File.write("sol_#{instance}.txt", "#{result.total_value} #{index_list}")
     result
   end
  
@@ -216,8 +216,8 @@ defmodule Metaheuristique do
   defp fit_in_bags?(weights, index, indexes, acc, ban_list), 
     do: if Enum.member?(weights, false) or Enum.member?(ban_list, index), do: acc, else: {indexes ++ [index], weights}
  
-  def main(iteration_nb \\ 100, number_of_ban \\ 10, max_ban_nb \\ 20) do
-    data = get_all_data()
+  def main(iteration_nb \\ 100, number_of_ban \\ 10, max_ban_nb \\ 20, instance \\ "100M5_1") do
+    data = get_all_data(instance)
  
     tuples_lists = build_tuples_list(data)
 
@@ -233,6 +233,6 @@ defmodule Metaheuristique do
 
     [first_solution]
 		|> taboo_search(tuples_lists, data, [], {0, iteration_nb}, number_of_ban, max_ban_nb, sorted_index_by_ratio)
-    |> write_in_text_file(data.number_of_objects)
+    |> write_in_text_file(data.number_of_objects, instance)
   end
 end

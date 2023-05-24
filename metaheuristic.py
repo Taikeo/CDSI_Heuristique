@@ -241,7 +241,7 @@ def mutation(best,list_final,bags,mutation_chance=1,changing_chance=50):
             l.append(best[i])
     return l
 
-def output(liste,length,max_score):
+def output(liste,length,max_score,file_name):
     """Créer le fichier en 1 ligne de 0 et 1 
 
     Args:
@@ -249,13 +249,13 @@ def output(liste,length,max_score):
         length (int): Nombre de valeur en total
     """
     output = ""
-    with open('output.txt', 'w') as f:
+    with open(file_name, 'w') as f:
         for i in range(length):
             if i in liste:
                 output+="1"
             else:
                 output+="0"
-        f.write(str(max_score)+' '.join(output))
+        f.write(str(max_score)+" "+' '.join(output))
         
 def main():
     
@@ -264,9 +264,10 @@ def main():
     
     nombre_population = 100
     nombre_best_population = 10
-    nombre_iteration = 200000
+    nombre_iteration = 1
     probabilité_mutation = 1
     probabilité_changement = 50
+    fichier = "Instances/100M5_1.txt"
     
     
     #####################
@@ -275,7 +276,7 @@ def main():
     ################## Initialisation
 
     
-    liste, copy, poids_sac, value = file_reader('Instances/100M5_1.txt')
+    liste, copy, poids_sac, value = file_reader(fichier)
     ps = poids_sac.copy()
     indexes_l = initialisation(copy, ps, nombre_population)
     values_indexes = get_valuesv2(indexes_l, value)
@@ -296,7 +297,6 @@ def main():
     ############
     
     ######### Lancement des X itérations
-    
     for _ in range(nombre_iteration):
         childs = croisement(new_pop,poids_sac,liste)
         new_bests = compare_list_of_list(new_pop, childs, value, nombre_best_population)
@@ -304,7 +304,7 @@ def main():
     
     ##########
     
-    output(new_pop[0],len(value),get_single_value(new_pop[0],value))
+    output(new_pop[0],len(value),get_single_value(new_pop[0],value),"sol_"+fichier.split("/")[1])
     print(new_pop[0],get_single_value(new_pop[0],value))
 
 if __name__ == '__main__':
